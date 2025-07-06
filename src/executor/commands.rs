@@ -14,14 +14,14 @@ pub fn SETVALUE(args: &[&str]) {
 }
 
 // OPCODE: 0x02
-// Prints the currently-stored value to the console
+// Prints the currently-stored value to the console.
 pub fn PRINT(_: &[&str]) {
     let stored_value = LATEST_STORED_VALUE.lock().unwrap();
     println!("[fBASIC] {}", *stored_value);
 }
 
 // OPCODE: 0x03
-// Renders a single pixel using the colorname stored in the currently-stored value
+// Renders a single pixel using the colorname stored in the currently-stored value.
 pub fn PX(_: &[&str]) {
     let stored_value = LATEST_STORED_VALUE.lock().unwrap();
     let mut colors: HashMap<&str, &str> = HashMap::new();
@@ -46,4 +46,7 @@ pub fn PX(_: &[&str]) {
 }
 
 // OPCODE: 0x04
-pub fn GOTO(_: &[&str]) {}
+// Moves execution to a line.
+pub fn GOTO(_: &[&str]) {
+    // This command is handled directly, as some values cannot be passed here.
+}

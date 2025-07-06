@@ -1,0 +1,129 @@
+fn handle_fbin(buffer: Vec<u8>) -> Result<()> {
+    let mut i: usize = 0;
+    while i < buffer.len() {
+        let opcode: u8 = buffer[i];
+        i += 1;
+
+        match opcode {
+            // SETVALUE
+            // Sets the currently-stored value, which can be used for commands like PRINT or PX.
+            0x01 => {
+                let mut arg_bytes: Vec<u8> = Vec::new();
+                while i < buffer.len() && buffer[i] != 0x00 {
+                    arg_bytes.push(buffer[i]);
+                    i += 1;
+                }
+
+                i += 1;
+
+                if let Ok(arg_str) = String::from_utf8(arg_bytes) {
+                    executor::execute(&format!("SETVALUE {}", arg_str));
+                } else {
+                    println!("Invalid UTF-8 in SETVALUE arguments");
+                }
+            }
+
+            // PRINT
+            // Prints the currently-stored value to the console.
+            0x02 => executor::execute("PRINT"),
+
+            // PX
+            // Renders a single pixel using the colorname stored in the currently-stored value.
+            0x03 => executor::execute("PX"),
+
+            // GOTO
+            // Moves execution to a line.
+            0x04 => {
+                let target: usize = buffer[i] as usize;
+                i += 1;
+
+                if target < buffer.len() {
+                    i = target;
+                    continue;
+                } else {
+                    println!("GOTO target {} out of bounds", target);
+                    break;
+                }
+            }
+
+            // Other(s)
+            other => println!("Unknown opcode! 0x{:02X}", other),
+        }
+    }
+
+    Ok(())
+}
+
+fn handle_fbp(buffer: Vec<u8>) -> Result<()> {
+    if buffer.len() < 6 {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            "Buffer too small for metadata",
+        ));
+    }
+
+    let format_marker: u8 = buffer[0];
+    let version_number: u8 = buffer[1];
+
+    if format_marker != 0x00 {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            "Invalid format marker (expected 0x00)",
+        ));
+    }
+
+    let name_len: usize = buffer[2] as usize;
+    let name_end: usize = 3 + name_len;
+
+    if buffer.len() < name_end {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            "Name exceeds buffer length",
+        ));
+    }
+
+    let name = String::from_utf8_lossy(&buffer[3..name_end]);
+
+    let desc_len_index: usize = name_end;
+    let desc_len: usize = buffer[desc_len_index] as usize;
+    let desc_start: usize = desc_len_index + 1;
+    let desc_end: usize = desc_start + desc_len;
+
+    if buffer.len() < desc_end {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            "Description exceeds buffer length",
+        ));
+    }
+
+    let description = String::from_utf8_lossy(&buffer[desc_start..desc_end]);
+
+    let fbin_len_start: usize = desc_end;
+
+    if buffer.len() < fbin_len_start + 2 {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            "Not enough data for .fbin length",
+        ));
+    }
+
+    let fbin_len: usize =
+        u16::from_be_bytes([buffer[fbin_len_start], buffer[fbin_len_start + 1]]) as usize;
+
+    let fbin_start: usize = fbin_len_start + 2;
+    let fbin_end: usize = fbin_start + fbin_len;
+
+    if buffer.len() < fbin_end {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            ".fbin data is incomplete",
+        ));
+    }
+
+    let fbin_data: &[u8] = &buffer[fbin_start..fbin_end];
+    println!("Package Name: {}", name);
+    println!("Description: {}", description);
+    println!("Version: {}", version_number);
+    println!("Running embedded program...");
+    return Ok(handle_fbin(fbin_data.to_vec())?);
+}
