@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use std::collections::HashMap;
+use std::io::{self, Write};
 use std::sync::Mutex;
 
 lazy_static! {
@@ -25,8 +26,8 @@ pub fn PRINT(_: &[&str]) {
 pub fn PX(_: &[&str]) {
     let stored_value = LATEST_STORED_VALUE.lock().unwrap();
     let mut colors: HashMap<&str, &str> = HashMap::new();
-    colors.insert("refresh", "\x1B[2J\x1B[H");
     colors.insert("newline", "\n");
+    colors.insert("clear", " ");
     colors.insert("red", "🟥");
     colors.insert("orange", "🟧");
     colors.insert("yellow", "🟨");
@@ -40,6 +41,7 @@ pub fn PX(_: &[&str]) {
 
     if let Some(emoji) = colors.get(stored_value.as_str()) {
         print!("{}", emoji);
+        io::stdout().flush().unwrap();
     } else {
         println!("Unknown color attempted to render pixel! {}", *stored_value);
     }

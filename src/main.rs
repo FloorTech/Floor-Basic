@@ -1,6 +1,12 @@
 use std::env;
 use std::fs::File;
-use std::io::{Error, ErrorKind, Read, Result};
+use std::io::{Error, ErrorKind, Read, Result, stdout};
+
+use crossterm::{
+    cursor::MoveTo,
+    execute,
+    terminal::{Clear, ClearType},
+};
 
 mod executor;
 
@@ -150,6 +156,7 @@ fn open_file(path: &str) -> Result<()> {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0));
 
     if args.len() > 1 {
         println!("Using file mode...");
