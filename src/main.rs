@@ -27,6 +27,8 @@ fn handle_fbin(buffer: Vec<u8>) -> Result<()> {
                 } else {
                     println!("Invalid UTF-8 in SETVALUE arguments");
                 }
+
+                continue;
             }
 
             // PRINT
@@ -53,7 +55,7 @@ fn handle_fbin(buffer: Vec<u8>) -> Result<()> {
             }
 
             // Other(s)
-            other => println!("Unknown opcode! 0x{:02X}", other),
+            _ => {}
         }
     }
 
