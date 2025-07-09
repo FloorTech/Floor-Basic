@@ -8,6 +8,14 @@ fBASIC (Floor Basic) is a deliberately minimal—and delightfully annoying—b
 - Simple drawing via `PX`
 - Console logging via `PRINT`
 - Absolute jumps via `GOTO`
+- Text-based console inpit via `INPUT`
+- Currently-stored value appending via `APPEND_VALUE`
+- Clearing the currently-stored value via `CLEAR_VALUE`
+- Adding to currently-stored value as number via `ADD`
+- Subtracting from currently-stored value as number via `SUB`
+- New-line character writing via `NL`
+- Console-clearing via `CLS`
+- Sleeping/waiting as milliseconds via `WAIT`
 - Extensible opcode map (up to `0xFF`)
 - Two formats:
   - **Raw** `.fbin` files (opcodes + data markers)
