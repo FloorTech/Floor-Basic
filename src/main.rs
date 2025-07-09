@@ -51,14 +51,81 @@ fn handle_fbin(buffer: Vec<u8>) -> Result<()> {
                 let target: usize = buffer[i] as usize;
                 i += 1;
 
-                if target < buffer.len() {
-                    i = target;
+                let adjusted: usize = target.saturating_sub(1);
+
+                if adjusted < buffer.len() {
+                    i = adjusted;
                     continue;
                 } else {
                     println!("GOTO target {} out of bounds", target);
                     break;
                 }
             }
+
+            // INPUT
+            // Takes text-based input from the console, then assigns the value to the current value.
+            0x05 => executor::execute("INPUT"),
+
+            // APPEND_VALUE
+            // Appends a text-based value to the currently-stored value.
+            0x06 => {
+                let mut arg_bytes: Vec<u8> = Vec::new();
+                while i < buffer.len() && buffer[i] != 0x00 {
+                    arg_bytes.push(buffer[i]);
+                    i += 1;
+                }
+                i += 1;
+                if let Ok(arg_str) = String::from_utf8(arg_bytes) {
+                    executor::execute(&format!("APPEND_VALUE {}", arg_str));
+                }
+                continue;
+            }
+
+            // CLEAR_VALUE
+            // Clears the currently-stored value
+            0x07 => executor::execute("CLEAR_VALUE"),
+
+            // ADD
+            // Adds a number-based value to the currently-stored value.
+            0x08 => {
+                let mut arg_bytes: Vec<u8> = Vec::new();
+                while i < buffer.len() && buffer[i] != 0x00 {
+                    arg_bytes.push(buffer[i]);
+                    i += 1;
+                }
+                i += 1;
+                if let Ok(arg_str) = String::from_utf8(arg_bytes) {
+                    executor::execute(&format!("ADD {}", arg_str));
+                }
+                continue;
+            }
+
+            // SUB
+            // Subtracts a number-based value from the currently-stored value.
+            0x09 => {
+                let mut arg_bytes: Vec<u8> = Vec::new();
+                while i < buffer.len() && buffer[i] != 0x00 {
+                    arg_bytes.push(buffer[i]);
+                    i += 1;
+                }
+                i += 1;
+                if let Ok(arg_str) = String::from_utf8(arg_bytes) {
+                    executor::execute(&format!("SUB {}", arg_str));
+                }
+                continue;
+            }
+
+            // NL
+            // Prints a new line to the console.
+            0x0A => executor::execute("NL"),
+
+            // CLS
+            // Clears the console.
+            0x0B => executor::execute("CLS"),
+
+            // WAIT
+            // Waits/sleeps a specific amount of milliseconds, based on the currently-stored value.
+            0x0C => executor::execute("WAIT"),
 
             // Other(s)
             _ => {}
